@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<link rel="icon" type="image/png" href="/URLIcon.png">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+img{ display:block; max-height: 95%; margin:auto; width:auto; max-width:100%; }
+</style>
+</head>
+<body>
+	<img id="viewer" src=""/>
+	<div id="info"> </div>
+	<select id="selector"></select>
+	<input type="text" id="myText" value="1">
+	<button id="goto">GoToPage</button><br>
+</body>
+<script>
+//var url = new URL(window.location.href);
+//var c = url.searchParams.get("c");
+var name = window.location.href.split("m=")[1];
+/*
+if(name.includes("#")){
+  name = window.location.href.split("m=")[1].split("#")[0];
+}
+*/
+document.title = "shira | "+name;
+var baseUrl = "manga/"+name+"/";
+var baseFolder = "";
+var pictureIndex = 0;
+var pictures = [];
+var folders = [];
+var initialLoad = true;
+
+function checkForSave(){
+  if (!initialLoad){return;}
+  initialLoad = false;
+  
+  let text = "You last stopped reading";
+  
+  if(localStorage.getItem(name+"c")){
+    text += " at chapter "+localStorage.getItem(name+"c");
+  }
+  if(localStorage.getItem(name+"p")){
+    text += " at page "+(parseInt(localStorage.getItem(name+"p"))+1);
+  }
+  if(text != "You last stopped reading"){
+    alert(text);
+  }
+}
+
+function getSite(url) {
+  return new Promise(function(resolve, reject) {
+    var req = new XMLHttpRequest();
+    req.open('GET', url);
+
+    req.onload = function() {
+      if (req.status == 200) {
+        resolve(req.response);
+      }
+      else {
+        reject(Error(req.statusText));
+      }
+    };
+    req.onerror = function() {
+      reject(Error("Network Error"));
+    };
+    req.send();
+  });
+}
+
+function getPages() {
+  getSite(baseUrl+baseFolder).then(function(data) {
+    pictures = [];
+    let el = document.createElement( 'html' );
+    el.innerHTML = data;
+    let elements = el.getElementsByTagName("a");
+    for (var i = 0; i < elements.length; i++) {
+      var href = elements[i].innerText;
+      if (href.indexOf('.jpg') > 0 || href.indexOf('.png') > 0 || href.indexOf('.jpeg') > 0) {
+        pictures.push(href);
+      }
+    }
+    //changePicture(null);
+    checkForSave();
+    changePicture(0);
+  }, function(Error) {
+    console.log(Error);
+  });
+}
+
+function getFolders() {
+  getSite(baseUrl).then(function(data) {
+    folders = [];
+    var firstFolder = 0;
+    let el = document.createElement( 'html' );
+    el.innerHTML = data;
+    let elements = el.getElementsByTagName("a");
+    for (var i = 0; i < elements.length; i++) {
+      var folder = elements[i].innerText;
+      if (folder.indexOf('/') > 0 && folder != "../") {
+        if(firstFolder == 0){
+          baseFolder = folder;
+          firstFolder = 1;
+        }
+        folders.push(folder);
+        var opt = document.createElement("OPTION");
+        opt.value = folder;
+        opt.innerHTML = folder;
+        document.getElementById("selector").appendChild(opt);
+      }
+    }
+    getPages();
+  }, function(Error) {
+    window.location.replace("selector.html");
+    console.log(Error);
+  });
+}
+
+function changePicture(index) {
+  if(index==0){
+    pictureIndex = 0;
+  }else{
+    pictureIndex += index;
+  }
+  
+  /*
+  if (index == null){
+    if (window.location.href.includes("#")){
+      pictureIndex = parseInt(window.location.href.split("#")[1]);
+    }else{
+      pictureIndex = 0;
+    }
+  }
+  */
+  
+  if(pictureIndex >= pictures.length){
+    //New Chapter:
+    var selector = document.getElementById("selector");
+    selector.selectedIndex += 1;
+    var newfolder = selector.options[selector.selectedIndex].value;
+    baseFolder = newfolder;
+    getPages();
+    //setPictureIndex(1);
+    pictureIndex = 0;
+    return;
+  }else if (pictureIndex < 0){
+    pictureIndex = pictures.length - 1;
+  }
+  
+  document.getElementById("viewer").src = baseUrl + baseFolder + pictures[pictureIndex];
+  document.getElementById("info").innerText = (pictureIndex + 1) + "/" + pictures.length;
+  //history.replaceState(undefined, undefined, "#"+pictureIndex);
+  localStorage.setItem(name+"p",pictureIndex);
+}
+
+document.addEventListener("keydown", function(e){
+  var left = -1;
+  var right = 1;
+    if (e.keyCode == 37) {
+       changePicture(left);
+       return false;
+    } else if (e.keyCode == 39) {
+      changePicture(right);
+      return false;
+    } else if (e.keyCode == 32) {
+      let element = document.body
+      if(Math.abs(element.scrollHeight - element.scrollTop - element.clientHeight) <= 3.0){
+        changePicture(right);
+        return false;
+      }
+    }
+});
+
+document.getElementById("selector").addEventListener("change",function(){
+  var newfolder = this.options[this.selectedIndex].value;
+  baseFolder = newfolder;
+  localStorage.setItem(name+"c",newfolder)
+  getPages();
+});
+
+document.getElementById("viewer").addEventListener("click",function(){
+  changePicture(1);
+});
+
+document.getElementById("goto").addEventListener("click",function(){
+  setPictureIndex();
+});
+
+document.getElementById("viewer").addEventListener("load",function(){
+  window.scrollTo(0,0);
+});
+
+window.onload = document.onload = function(){
+  getFolders();
+}
+
+</script>
+</html>

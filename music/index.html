@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=windows-1252">
+<title>Music</title>
+<link rel="icon" type="image/png" href="../URLIcon.png">
+<script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+button{
+	margin: 5px;
+	width: 100px;
+	height: 40px;
+}
+</style>
+
+</head>
+<body>
+	<div class="canvas">
+		<div id="cur">Current Song</div><br>
+		<audio id="mudo" onended="DoSomething();" controls>
+		<source id="sor" src="brasil.mp3" type="audio/mpeg">
+		Your browser does not support the audio element.
+		</audio>
+		<button onclick="playPause();">Play/Pause</button>
+		<button onclick="DoSomething();">Random</button>
+		<button onclick="document.getElementById('mudo').volume -= 0.1;">vol. -0.1</button>
+		<button onclick="document.getElementById('mudo').volume += 0.1;">vol. +0.1</button>
+		<button onclick="document.getElementById('mudo').currentTime -= 5;">-5s</button>
+		<button onclick="document.getElementById('mudo').currentTime += 5;">+5s</button>
+		<button id="loop" onclick="loop();">Not Looping</button>
+		<input type="text" id="volt" name="volt">
+		<button onclick="document.getElementById('mudo').volume = document.getElementById('volt').value;">Set Volume</button>
+		<button onclick="window.open('/music/index.html','winname','directories=no,titlebar=no,toolbar=no,location=no,status=no,menubar=no,scrollbars=yes,resizable=no,width=300,height=350');">Popout</button>
+	</div>
+	<div id="songs">
+	</div>
+<script>
+c = console.log;
+var songs = [];
+var baseUrl = "songs/";
+var pictureIndex = 0;
+var tempHTML = "";
+function getFiles() {
+	$.ajax(baseUrl).success(function(data) {
+		songs = [];
+		tempHTML = "<ul>";
+		$(data).find("a[href]").each(function() {
+			var href = $(this).attr('href');
+			if (href.indexOf('.mp3') > 0) {
+				songs.push(href);
+				tempHTML += "<li onclick=\"DoSomething('"+href+"');\">"+href+"</li>";
+				
+			}
+		});
+		tempHTML += "</ul>";
+		document.getElementById("songs").innerHTML = tempHTML;
+	});
+}
+getFiles();
+function defvol(){
+	document.getElementById("mudo").volume = 0.3;
+	
+	document.getElementById("sor").src = baseUrl+songs[Math.floor(Math.random()*songs.length)];
+	document.getElementById("mudo").load();
+}
+function playPause(){
+	if (document.getElementById("mudo").paused){
+		document.getElementById("mudo").play();
+	}else{
+		document.getElementById("mudo").pause();
+	}
+}
+function loop(){
+	if (document.getElementById("mudo").loop){
+		document.getElementById("mudo").loop = false;
+		document.getElementById("loop").innerHTML = "Not Looping";
+	}else{
+		document.getElementById("mudo").loop = true;
+		document.getElementById("loop").innerHTML = "Looping!";
+	}
+}
+function DoSomething(song){
+	if(song){
+		document.getElementById("sor").src = baseUrl+song;
+		document.title = song;
+		document.getElementById("cur").innerHTML = song;
+		document.getElementById("mudo").load();
+		document.getElementById("mudo").play();
+	}else{
+		var sang = songs[Math.floor(Math.random()*songs.length)];
+		document.getElementById("sor").src = baseUrl+sang;
+		document.title = sang;
+		document.getElementById("cur").innerHTML = sang;
+		document.getElementById("mudo").load();
+		document.getElementById("mudo").play();
+	}
+}
+setTimeout(defvol, 100);
+navigator.mediaSession.setActionHandler('nexttrack', DoSomething);
+
+c("DONE!");
+//Scroll Position: https://stackoverflow.com/questions/16388772/maintain-scroll-position-of-large-html-page-when-client-returns
+</script>
+</body>
+</html>

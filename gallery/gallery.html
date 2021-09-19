@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>Shira gallery</title>
+<link rel="icon" type="image/png" href="/URLIcon.png">
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body{font-family:Arial;background-color:GhostWhite;}
+div{
+	width:300px;
+	height:300px;
+	margin:5px;
+	background-color:LightBlue;
+	float:left;
+	background: url('empty.png') no-repeat center center;
+	background-size: cover;
+	cursor: pointer;
+}
+</style>
+</head>
+<body>
+</body>
+<script>
+var folder = "pictures/";
+var pictures = [];
+
+//ajax request alternative
+function getSite(url) {
+  return new Promise(function(resolve, reject) {
+    var req = new XMLHttpRequest();
+    req.open('GET', url);
+
+    req.onload = function() {
+      if (req.status == 200) {
+        resolve(req.response);
+      }
+      else {
+        reject(Error(req.statusText));
+      }
+    };
+    req.onerror = function() {
+      reject(Error("Network Error"));
+    };
+    req.send();
+  });
+}
+
+// Function to check visibility
+function isVisible(el, percentVisible) {
+  let rect = el.getBoundingClientRect();
+  let windowHeight = (window.innerHeight || document.documentElement.clientHeight);
+
+  return !(
+    Math.floor(100 - (((rect.top >= 0 ? 0 : rect.top) / +-(rect.height / 1)) * 100)) < percentVisible ||
+    Math.floor(100 - ((rect.bottom - windowHeight) / rect.height) * 100) < percentVisible
+  )
+};
+
+//Set background if visible and no background image yet
+function checkVisibilities(){
+	for(i=0;i<pictures.length;i++){
+    let id = i;
+    let el = document.getElementsByTagName("div")[i];
+		if(isVisible(el,20)){
+      if(el.imageShown){
+        continue;
+      }
+      el.addEventListener("click",function(){
+          window.open(folder+pictures[id], "_blank");
+      });
+			el.style.backgroundColor = "green";
+			el.style.backgroundImage = 'url('+folder+pictures[i]+')';
+      el.imageShown = true;
+		} else {
+			document.getElementsByTagName("div")[i].style.backgroundColor = "red";
+		}
+	}
+}
+
+//setInterval(checkVisibilities,1000);
+//Update visibility on scroll
+window.addEventListener('scroll', function() {
+  checkVisibilities();
+});
+
+window.onload = document.onload = function(){
+  //Get Images
+  getSite(folder).then(function(data) {
+    pictures = [];
+    let el = document.createElement("html");
+    el.innerHTML = data;
+    let elements = el.getElementsByTagName("a");
+    for (var i = 0; i < elements.length; i++){
+      var href = elements[i].innerText;
+			if (href.indexOf('.jpg') > 0 || href.indexOf('.png') > 0 || href.indexOf('.jpeg') > 0) {
+				pictures.push(href);
+			}
+    }
+    //Create empty divs
+    for(i=0;i<pictures.length;i++){
+      document.body.innerHTML = document.body.innerHTML + "<div></div>";
+    }
+    checkVisibilities();
+  }, function(Error) {
+    console.log(Error);
+  });
+}
+
+
+</script>
+</html>

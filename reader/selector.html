@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>Welcome~</title>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<link rel="icon" type="image/png" href="/URLIcon.png">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+div{ font-family: Verdana, Arial; }
+img{ max-width: 360px; border: 1px solid black; }
+#box{ float: left; padding: 10px; text-align:center; padding-bottom: 20px; }
+</style>
+</head>
+<body>
+<div id="info"></div>
+<script>
+var baseUrl = "manga/";
+
+function getSite(url) {
+  return new Promise(function(resolve, reject) {
+    var req = new XMLHttpRequest();
+    req.open('GET', url);
+
+    req.onload = function() {
+      if (req.status == 200) {
+        resolve(req.response);
+      }
+      else {
+        reject(Error(req.statusText));
+      }
+    };
+    req.onerror = function() {
+      reject(Error("Network Error"));
+    };
+    req.send();
+  });
+}
+
+function showCover(mangaFolder) {
+  var ff = 0;
+  var fp = 0;
+  getSite(baseUrl+mangaFolder).then(function(data) {
+    let el = document.createElement( 'html' );
+    el.innerHTML = data;
+    var firstChapter = el.getElementsByTagName("a")[1].innerText //First chapter
+    getSite(baseUrl+mangaFolder+firstChapter).then(function(data) {
+      let il = document.createElement( 'html' );
+      il.innerHTML = data;
+      var img = il.getElementsByTagName("a")[1].innerText;
+      document.getElementById("info").innerHTML += '<div id="box"><a href="sreader.html?m='+mangaFolder.substring(0,mangaFolder.length-1)+'"><img src="'+baseUrl+mangaFolder+firstChapter+img+'"><br>'+mangaFolder+'</a></div>';
+    }, function(Error) {
+      console.log(Error);
+    });
+  }, function(Error) {
+    console.log(Error);
+  });
+}
+
+function getTitles() {
+  getSite(baseUrl).then(function(data) {
+    let el = document.createElement( 'html' );
+    el.innerHTML = data;
+    let elements = el.getElementsByTagName("a");
+    for (var i = 0; i < elements.length; i++) {
+      var href = elements[i].innerText;
+      if (href.indexOf('/') > 0 && href != "../" && href != "cover/") {
+        showCover(href);
+      }
+    }
+  }, function(Error) {
+    console.log(Error);
+  });		
+}
+window.onload = document.onload = function(){
+  getTitles();
+}
+</script>
+</body>
+</html>

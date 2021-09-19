@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>~terminal</title>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body{
+  font-family:consolas,monospace;
+  background-color:black;color:white;
+  font-size:14px;
+}
+#cmd{
+  background-color:black;color:white;border-style:none;
+  font-family:consolas,monospace;
+  font-size:14px;
+  user-select: none;
+  outline: none;
+  width:50%;
+  max-width:50%;
+}
+</style>
+</head>
+<body>
+<span id="history">Connected.<br>Welcome user!<br>Use 'help' to see available commands<br></span>
+<span id="prompt">[user@localhost ~]: </span>
+<input type="text" id="cmd" autofocus>
+
+
+<script>
+
+var wd = "/home/user";
+var user = "user";
+
+var fs = {};
+fs["/"] = ["home/"];
+fs["/home"] = ["user/"];
+fs["/home/user"] = ["test.txt","version"];
+fs["/home/user/test.txt"] = "This is a test file.\nIt shows that the cat command works.";
+fs["/home/user/version"] = "This is a test version of a linux-like console.\nIt features some basic commands and the cd command which can change folders dynamic or static (with or without / infront).";
+document.getElementById("cmd").addEventListener('keydown', function(e) {
+  if (e.keyCode != 16 && e.keyCode != 17 && e.keyCode != 18) {
+    var audio = new Audio('keystroke.mp3');
+    audio.volume = 0.10;
+    audio.play();
+  }
+});
+
+document.addEventListener('click', function(e) {
+  document.getElementById("cmd").focus();
+});
+
+document.getElementById("cmd").addEventListener('keydown', function(e) {
+  if (e.keyCode == 13) {
+    document.getElementById("history").innerHTML += document.getElementById("prompt").innerHTML+document.getElementById("cmd").value+"<br>";
+    executeCMD(document.getElementById("cmd").value);
+    document.getElementById("cmd").value = "";
+    window.scrollTo(0,document.body.scrollHeight);
+  }
+});
+
+function addtext(text,newline = true){
+  document.getElementById("history").innerHTML += text;
+  if(newline){
+    document.getElementById("history").innerHTML += "<br>";
+  }
+}
+
+function chprompt(user,wd){
+  //<span id="prompt">[user@localhost ~]: </span>
+  var folder = "/";
+  if(wd.length > 1){
+    folder = wd.split("/")[wd.split("/").length-1]
+  }
+  if(wd == "/home/"+user){
+    folder = "~";
+  }
+  document.getElementById("prompt").innerText = "["+user+"@localhost "+folder+"]: ";
+}
+
+function addctext(text,color = "white",newline = false){
+  document.getElementById("history").innerHTML += "<span style='color:"+color+";'>"+text+"</span>";
+  if(newline){
+    document.getElementById("history").innerHTML += "<br>";
+  }
+}
+
+function executeCMD(cmd){
+  var history = document.getElementById("history");
+  switch(cmd.split(" ")[0]){
+    case "help":
+      addtext("Available commands:");
+      addtext("help pwd clear ls cat cd");
+      break;
+    case "pwd":
+      addtext(wd);
+      break;
+    case "clear":
+      document.getElementById("history").innerHTML = "";
+      break;
+    case "ls":
+      for (file of fs[wd]){
+        if(file.includes("/")){
+          addctext(file.split("/")[0]+"\t","blue");
+        }else{
+          addctext(file+"\t");
+        }
+      }
+      addtext("");
+      break;
+    case "cat":
+      if(cmd.split(" ").length == 1){
+        addtext(cmd+": missing argument");
+        break;
+      }
+      if (fs[wd].includes(cmd.split(" ")[1])) {
+        addtext(fs[wd+"/"+cmd.split(" ")[1]]);
+      }else{
+        addtext(cmd+": file not found");
+      }
+      break;
+    case "cd":
+      if(cmd.split(" ").length == 1){
+        wd = "/home/"+user;
+        break;
+      }
+      var path = cmd.split(" ")[1].split("/");
+      twd = wd;
+        for (folder of path){
+          if(folder == ".."){
+            twd = twd.split("/").slice(0,twd.split("/").length-1).join("/")
+            if(twd == ""){twd = "/";}
+          }else{
+            if(twd == "/"){twd = "";}
+            twd = twd.split("/")
+            twd.push(folder)
+            twd = twd.join("/")
+          }
+        }
+      if(cmd.split(" ")[1][0] == "/"){twd = cmd.split(" ")[1];}
+      console.log(twd);
+      if(fs.hasOwnProperty(twd)){
+        wd = twd;
+      }else{
+        addtext(cmd+": path not found.");
+      }
+      break;
+    case "passwd":
+      //addtext()
+      break;
+    case "mkdir":
+      if(cmd.split(" ").length == 1){
+        addtext(cmd+": error, no folder specified.");
+        break;
+      }
+      var folder = cmd.split(" ")[1];
+      var sfolder = folder.replace(/[^\w\s]/gi, '');
+      fs[wd].push(sfolder+"/");
+      fs[wd+"/"+sfolder] = [];
+      break;
+    case "touch":
+      if(cmd.split(" ").length == 1){
+        addtext(cmd+": error, no filename specified.");
+        break;
+      }
+      var filename = cmd.split(" ")[1];
+      var sfilename = filename.replace(/[^\w\s]/gi, '');
+      fs[wd].push(sfilename);
+      fs[wd+"/"+sfilename] = "";
+      break;
+    default:
+      if(cmd == ""){break;}
+      addtext(cmd+": command not found");
+      break;
+  }
+  chprompt(user,wd);
+}
+</script>
+<!--Precaching sounds-->
+<audio src="keystroke.mp3" controls style="display:none;">
+</body>
+</html>
