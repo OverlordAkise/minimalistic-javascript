@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>Casino</title>
+<!--<link rel="icon" type="image/png" href="URLIcon.png">-->
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!--<link rel="stylesheet" href="/style.css">-->
+<style>
+body{
+  background-color: GhostWhite;
+  font-family: Verdana, Arial;
+}
+.card{
+  font-size:150px;
+  color:black;
+  width: 100px;
+  height: 200px;
+  transition: transform 0.5s;
+  transform-style: preserve-3d;
+  cursor: default;
+  display:inline-block;
+}
+
+.card.is-flipped {
+  transform: rotateY(180deg);
+}
+
+.card__face {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  color:black;
+  text-align: center;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+.card__face--back {
+  transform: rotateY(180deg);
+}
+</style>
+</head>
+<body>
+<h1>Blackjack</h1>
+<div id="main">
+
+</div>
+<button onclick="addCard();">Add Card</button>
+</body>
+<script>
+var cards = ["🂠","🂡","🂢","🂣","🂤","🂥","🂦","🂧","🂨","🂩","🂪","🂫","🂬","🂭","🂮","🂱","🂲","🂳","🂴","🂵","🂶","🂷","🂸","🂹","🂺","🂻","🂼","🂽","🂾","🃁","🃂","🃃","🃄","🃅","🃆","🃇","🃈","🃉","🃊","🃋","🃌","🃍","🃎","🃑","🃒","🃓","🃔","🃕","🃖","🃗","🃘","🃙","🃚","🃛","🃜","🃝","🃞"];
+var cardval = {}
+cardval["🂡"] = 1;
+cardval["🂢"] = 2;
+cardval["🂣"] = 3;
+cardval["🂤"] = 4;
+cardval["🂥"] = 5;
+cardval["🂦"] = 6;
+cardval["🂧"] = 7;
+cardval["🂨"] = 8;
+cardval["🂩"] = 9;
+cardval["🂪"] = 10;
+cardval["🂫"] = 10;
+cardval["🂭"] = 10;
+cardval["🂮"] = 10;
+cardval["🂱"] = 1;
+cardval["🂲"] = 2;
+cardval["🂳"] = 3;
+cardval["🂴"] = 4;
+cardval["🂵"] = 5;
+cardval["🂶"] = 6;
+cardval["🂷"] = 7;
+cardval["🂸"] = 8;
+cardval["🂹"] = 9;
+cardval["🂺"] = 10;
+cardval["🂻"] = 10;
+cardval["🂽"] = 10;
+cardval["🂾"] = 10;
+cardval["🃁"] = 1;
+cardval["🃂"] = 2;
+cardval["🃃"] = 3;
+cardval["🃄"] = 4;
+cardval["🃅"] = 5;
+cardval["🃆"] = 6;
+cardval["🃇"] = 7;
+cardval["🃈"] = 8;
+cardval["🃉"] = 9;
+cardval["🃊"] = 10;
+cardval["🃋"] = 10;
+cardval["🃍"] = 10;
+cardval["🃎"] = 10;
+cardval["🃑"] = 1;
+cardval["🃒"] = 2;
+cardval["🃓"] = 3;
+cardval["🃔"] = 4;
+cardval["🃕"] = 5;
+cardval["🃖"] = 6;
+cardval["🃗"] = 7;
+cardval["🃘"] = 8;
+cardval["🃙"] = 9;
+cardval["🃚"] = 10;
+cardval["🃛"] = 10;
+cardval["🃝"] = 10;
+cardval["🃞"] = 10;
+var ids = 0;
+
+function addCard(){
+  let curid = ids;
+  let htmlText = '<div id="'+ids+'" class="card"> <div class="card__face card__face--front">🂠</div> <div class="card__face card__face--back">$CARD</div> </div>';
+  ids+=1;
+  htmlText = htmlText.replace("$CARD",cards[Math.floor(Math.random()*cards.length)]);
+  document.getElementById("main").innerHTML += htmlText;
+  setTimeout(function(){
+    document.getElementById(curid).classList.toggle('is-flipped');
+  },1000);
+}
+
+function message(text){
+  document.getElementById("message").innerText = text;
+}
+
+//document.getElementById("spin").addEventListener("click", spinMe);
+</script>
+</html>

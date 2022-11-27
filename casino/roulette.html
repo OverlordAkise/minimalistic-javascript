@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>Casino</title>
+<!--<link rel="icon" type="image/png" href="URLIcon.png">-->
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!--<link rel="stylesheet" href="/style.css">-->
+<style>
+body{
+  background-color: GhostWhite;
+  font-family: Verdana, Arial;
+}
+div{
+  border: 1px solid black;
+  display: inline-block;
+}
+#roulette{
+  width:500px;
+  height:100px;
+  background-image: url("roulette_number.png");
+}
+#highlight{
+  position:relative;
+  left:200px;
+  bottom:3px;
+  width:97px;
+  height:101px;
+  border: 2px solid blue;
+}
+</style>
+</head>
+<body>
+<h1>Roulette</h1>
+<div id="roulette"><div id="highlight"></div></div>
+
+<button id="spin">Spin!</button><br>
+<h3 id="message">Spin to win!</h3>
+</body>
+<script>
+var pos_one = 0;
+var speed_one = 0;
+var spinner_one = 0;
+
+var plus_speed = 0;
+
+//Offset positions of the numbers
+var nums = [0, 32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11, 30, 8, 23, 10, 5, 24, 16, 33, 1, 20, 14, 31, 9, 22, 18, 29, 7, 28, 12, 35, 3, 26]
+
+function spinMe(){
+  var done = false;
+  plus_speed = setInterval(function(){
+    if (speed_one <= 24 && done == false){//speed_one = PHP_VAR_0
+      speed_one = speed_one + Math.random()/10;//PHP_VAR_1
+    }else{
+      done = true;
+      speed_one = speed_one - Math.random()/10;//PHP_VAR_2
+    }
+    pos_one = (pos_one - speed_one)%3700;
+    document.getElementById("roulette").style.backgroundPosition = pos_one+"px 0px";
+    if (speed_one <= 0){
+      speed_one = 0;
+      clearInterval(plus_speed);
+      setTimeout(function(){checkWin();},100);
+    }
+  },1);
+}
+
+function validateReward(maxSpeed,upSpeed,downSpeed,shouldLog){
+  var speed_one = 0;
+  var done = false;
+  var pos_one = 0;
+  do{
+    if (speed_one <= maxSpeed && done == false){
+      speed_one = speed_one + upSpeed;
+    }else{
+      done = true;
+      speed_one = speed_one - downSpeed;
+    }
+    pos_one = (pos_one - speed_one)%3700;
+  }while(speed_one >= 0 || done == false)
+  speed_one = 0;
+  if(shouldLog){
+    console.log(nums[(((Math.round((pos_one * -1)/100)*100)/100)+2)%37]);
+  }else{
+    return nums[(((Math.round((pos_one * -1)/100)*100)/100)+2)%37];
+  }
+}
+
+function getKeyByValue(object, value) {
+  return Object.keys(object).find(key => object[key] === value);
+}
+
+/*
+function chooseReward(wantedNumber){
+  var speed_one = 0;
+  var done = false;
+  var pos_one = 0;
+  var upSpeed = Math.round((Math.random() + Number.EPSILON) * 100) / 100;
+  var downSpeed = Math.round((Math.random() + Number.EPSILON) * 100) / 100;
+  var wantedIndex = getKeyByValue(nums,wantedNumber);
+  
+  do{
+    if (speed_one <= 12 && done == false){
+      speed_one = speed_one + upSpeed;
+    }else{
+      done = true;
+      speed_one = speed_one - downSpeed;
+    }
+    pos_one = (pos_one - speed_one)%3700;
+  }while(speed_one >= 0 || done == false)
+  speed_one = 0;
+  var winNumIndex = getKeyByValue(nums,(((Math.round((pos_one * -1)/100)*100)/100)+2)%37);
+  var winNum = nums[(((Math.round((pos_one * -1)/100)*100)/100)+2)%37];
+
+  var change = winNumIndex - wantedIndex;
+  console.log("Wanted: "+wantedIndex+"\nGot: "+winNumIndex+"\nChange: "+change);
+  console.log("12/"+upSpeed+"/"+downSpeed);
+  //if(winNumIndex > wantedIndex){change = change * -1;}
+  //let won = validateReward(12,upSpeed,downSpeed+change);
+  //console.log(won);
+}*/
+
+function checkWin(){
+  stopSpin();
+  var one = 0;
+  for(var key in nums){
+    el = nums[key];
+    message("Winning number is: "+nums[(((Math.round((pos_one * -1)/100)*100)/100)+2)%37]);
+    setTimeout(function(){
+      pos_one = (Math.round((pos_one)/100)*100)
+      document.getElementById("roulette").style.backgroundPosition = (Math.round((pos_one)/100)*100)+"px 0px";
+    },1000);
+  }
+  
+}
+
+function stopSpin(){
+  clearInterval(spinner_one);
+}
+
+function message(text){
+  document.getElementById("message").innerText = text;
+}
+
+document.getElementById("spin").addEventListener("click", spinMe);
+</script>
+</html>

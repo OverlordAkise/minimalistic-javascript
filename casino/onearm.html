@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>Casino</title>
+<!--<link rel="icon" type="image/png" href="URLIcon.png">-->
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!--<link rel="stylesheet" href="/style.css">-->
+<style>
+body{
+  background-color: GhostWhite;
+  font-family: Verdana, Arial;
+}
+div{
+  border: 1px solid black;
+  display: inline-block;
+}
+#roll_one{
+  width:100px;
+  height:100px;
+  background-image: url("onearm_stripe.png");
+}
+#roll_two{
+  width:100px;
+  height:100px;
+  background-image: url("onearm_stripe.png");
+}
+#roll_three{
+  width:100px;
+  height:100px;
+  background-image: url("onearm_stripe.png");
+}
+</style>
+</head>
+<body>
+<h1>One-Armed Bandit</h1>
+<div id="roll_one"></div>
+<div id="roll_two"></div>
+<div id="roll_three"></div>
+<button id="spin">Spin!</button><br>
+<h3 id="message">Spin to win!</h3>
+<p>Possible outcome:<br>
+All 7: Jackpot!<br>
+All the same number: 10 free spins!<br>
+2 same numbers in a row: 3 free spins!<br>
+first and third same number: 1 free spin!<br>
+Anything else: Lost!
+</p>
+</body>
+<script>
+var pos_one = 0;
+var pos_two = 0;
+var pos_three = 0;
+
+var speed_one = 0;
+var speed_two = 0;
+var speed_three = 0;
+
+var spinner_one = 0;
+var spinner_two = 0;
+var spinner_three = 0;
+
+//Offset positions of the numbers
+//This is only aprox.
+var nums = {
+  9:[50,160],
+  8:[160,270],
+  7:[270,370],
+  6:[370,480],
+  5:[480,585],
+  4:[585,690],
+  3:[690,795],
+  2:[795,900],
+  1:[900,45]
+}
+
+function spinMe(){
+  startSpin();
+  var plus_speed = setInterval(function(){
+    speed_one = speed_one + Math.random();
+    speed_two = speed_two + Math.random();
+    speed_three = speed_three + Math.random();
+  },100);
+  
+  //one
+  setTimeout(function(){
+    clearInterval(plus_speed);
+    var ione = 0;
+    ione = setInterval(function(){
+      speed_one = speed_one - Math.random();
+      if (speed_one <= 0){
+        speed_one = 0;
+        clearInterval(ione);
+      }
+    },100);
+  },4000);
+  //two
+  setTimeout(function(){
+    var itwo = 0;
+    itwo = setInterval(function(){
+      speed_two = speed_two - Math.random();
+      if (speed_two <= 0){
+        speed_two = 0;
+        clearInterval(itwo);
+      }
+    },100);
+  },6000);
+  //three
+  setTimeout(function(){
+    var ithree = 0;
+    ithree = setInterval(function(){
+      speed_three = speed_three - Math.random();
+      if (speed_three <= 0){
+        speed_three = 0;
+        clearInterval(ithree);
+        setTimeout(function(){checkWin();},200);
+      }
+    },100);
+  },8000);
+}
+
+function checkWin(){
+  stopSpin();
+  var one = 0;
+  var two = 0;
+  var three = 0;
+  for(var key in nums){
+    el = nums[key];
+    if(pos_one > el[0] && pos_one < el[1]){
+      pos_one = (el[0]+el[1])/2;
+      document.getElementById("roll_one").style.backgroundPosition = "0px "+pos_one+"px";
+      one = key;
+    }
+    if(pos_two > el[0] && pos_two < el[1]){
+      pos_two = (el[0]+el[1])/2;
+      document.getElementById("roll_two").style.backgroundPosition = "0px "+pos_two+"px";
+      two = key;
+    }
+    if(pos_three > el[0] && pos_three < el[1]){
+      pos_three = (el[0]+el[1])/2;
+      document.getElementById("roll_three").style.backgroundPosition = "0px "+pos_three+"px";
+      three = key;
+    }
+  }
+  if (one == 7 && two == 7 && three == 7){
+    message("Jackpot!");
+  }else if(one == three && two == three){
+    message("You won 10 free spins!");
+  }else if(one == two || two == three){
+    message("You won 3 free spins!");
+  }else if(one == three){
+    message("You won one free spin!");
+  }else{
+    message("You lost!");
+  }
+}
+
+function startSpin(){
+  message("Spinning...");
+  spinner_one = setInterval(function(){
+    pos_one = (pos_one + speed_one)%963;
+    document.getElementById("roll_one").style.backgroundPosition = "0px "+pos_one+"px";
+  },1);
+
+  spinner_two = setInterval(function(){
+    pos_two = (pos_two + speed_two)%963;
+    document.getElementById("roll_two").style.backgroundPosition = "0px "+pos_two+"px";
+  },1);
+
+  spinner_three = setInterval(function(){
+    pos_three = (pos_three + speed_three)%963;
+    document.getElementById("roll_three").style.backgroundPosition = "0px "+pos_three+"px";
+  },1);
+}
+
+function stopSpin(){
+  clearInterval(spinner_one);
+  clearInterval(spinner_two);
+  clearInterval(spinner_three);
+}
+
+function message(text){
+  document.getElementById("message").innerText = text;
+}
+
+document.getElementById("spin").addEventListener("click", spinMe);
+</script>
+</html>
